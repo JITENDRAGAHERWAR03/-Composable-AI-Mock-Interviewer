@@ -88,4 +88,55 @@ AudioControls.tsx
 ```bash
 npm create next-app@latest ai-mock-interviewer --ts
 cd ai-mock-interviewer
+cd ai-mock-interviewer
+Add environment key
+
+Create .env.local:
+
+GEMINI_API_KEY=your_api_key_here
+GEMINI_MODEL=gemini-2.0-flash
+Run
+
+npm run dev
+Open: http://localhost:3000
+
+🧪 Demo Flow (For Judges)
+Select Tech Interview → Data Analyst
+
+Enter skills: SQL, Power BI, Python
+
+Start interview
+
+Answer Q1 via mic
+
+Show:
+
+Live scores
+
+Tips
+
+Memory update
+
+Next question adapts based on weakness
+
+Complete 5 turns
+
+Show Final Report
+
+🎯 Why This Stands Out
+Clear end-to-end user journey
+
+Shows real AI reasoning + memory
+
+Demonstrates composability
+
+Works in 24-hour hackathon scope
+
+Easy to extend into a real product
+
+👨‍💻 Author
+Built by Jitendra Gaherwar
+B.Tech IT | Data & AI Developer
+Focused on building practical AI tools for learning and productivity.
+
 
