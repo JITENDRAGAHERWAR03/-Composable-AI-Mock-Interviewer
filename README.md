@@ -57,3 +57,24 @@ Designed with a **Composable Blocks** mindset where each stage (Question, Memory
 
 ## 📁 Project Structure
 
+ai-mock-interviewer/
+app/
+page.tsx # Setup screen
+interview/page.tsx # Interview UI
+report/page.tsx # Final report
+api/
+session/create/route.ts
+session/next-question/route.ts
+session/submit-answer/route.ts
+session/report/route.ts
+lib/
+store.ts
+llm.ts
+prompts.ts
+schema.ts
+scoring.ts
+components/
+BlocksPanel.tsx
+ChatPanel.tsx
+OutputPanel.tsx
+AudioControls.tsx
