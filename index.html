@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Composable AI Mock Interviewer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <div>
+          <p class="eyebrow">Composable AI Mock Interviewer</p>
+          <h1>Adaptive Interview Practice</h1>
+          <p class="subhead">
+            Build your interview flow from composable blocks: role selection, adaptive
+            questions, memory, evaluation, and feedback.
+          </p>
+        </div>
+        <div class="status" aria-live="polite">
+          <span id="statusDot" class="status__dot"></span>
+          <span id="statusText">Waiting to start</span>
+        </div>
+      </header>
+
+      <section class="panel config">
+        <h2>1. Configure Interview</h2>
+        <div class="grid">
+          <label class="field">
+            Interview Type
+            <select id="roleSelect">
+              <option value="hr">HR</option>
+              <option value="tech">Tech</option>
+              <option value="behavioral">Behavioral</option>
+            </select>
+          </label>
+          <label class="field">
+            Preset Context
+            <select id="presetSelect">
+              <option value="">Custom</option>
+              <option value="frontend">Frontend Engineer</option>
+              <option value="backend">Backend Engineer</option>
+              <option value="pm">Product Manager</option>
+            </select>
+          </label>
+          <label class="field field--full">
+            Resume / Role / Skills Context
+            <textarea
+              id="contextInput"
+              placeholder="Paste resume highlights, role focus, or skills (e.g., React, Node, leadership)."
+            ></textarea>
+          </label>
+        </div>
+        <div class="actions">
+          <label class="toggle">
+            <input type="checkbox" id="audioToggle" />
+            <span>Audio mode (speak questions)</span>
+          </label>
+          <button id="startBtn" class="btn btn--primary">Start Interview</button>
+        </div>
+      </section>
+
+      <section class="panel interview">
+        <div class="interview__left">
+          <h2>2. Interview Flow</h2>
+          <div class="flow">
+            <div class="flow__block">Role Block</div>
+            <div class="flow__block">Question Generator</div>
+            <div class="flow__block">Memory</div>
+            <div class="flow__block">Evaluation</div>
+            <div class="flow__block">Feedback</div>
+          </div>
+
+          <div class="question" id="questionBox">
+            <p class="question__label">Current Question</p>
+            <p id="questionText">Select settings and start the interview.</p>
+          </div>
+
+          <label class="field field--full">
+            Your Answer
+            <textarea id="answerInput" placeholder="Type your answer here..."></textarea>
+          </label>
+          <div class="actions">
+            <button id="micBtn" class="btn" disabled>🎙️ Use Mic</button>
+            <button id="submitBtn" class="btn btn--primary" disabled>Submit Answer</button>
+          </div>
+          <p class="helper" id="turnIndicator">Turn 0 / 5</p>
+        </div>
+
+        <aside class="interview__right">
+          <h2>3. Output Panel</h2>
+          <div class="output">
+            <h3>Live Evaluation</h3>
+            <p id="scoreText">Score: --</p>
+            <p id="feedbackText">Feedback will appear after your first answer.</p>
+          </div>
+          <div class="output">
+            <h3>Memory (Recent Answers)</h3>
+            <ul id="memoryList"></ul>
+          </div>
+        </aside>
+      </section>
+
+      <section class="panel report">
+        <h2>4. Final Interview Report</h2>
+        <div id="reportContent" class="report__content">
+          <p>No report yet. Finish all five questions to see your summary.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
