@@ -59,7 +59,9 @@ export default function ChatPanel({
       <AudioControls
         enabled={audioEnabled}
         question={question}
-        setAnswer={setAnswer}
+        onTranscript={(text) =>
+          setAnswer((prev) => (prev ? `${prev} ` : "") + text)
+        }
       />
     </div>
   );
