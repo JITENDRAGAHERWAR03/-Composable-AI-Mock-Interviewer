@@ -14,36 +14,26 @@ export default function AudioControls({
   onTranscript,
 }: AudioControlsProps) {
   const [listening, setListening] = useState(false);
+
   const recognition = useMemo(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-    const SpeechRecognition =
-      (window as unknown as { SpeechRecognition?: typeof window.SpeechRecognition })
-        .SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: typeof window.SpeechRecognition })
-        .webkitSpeechRecognition ||
-      null;
+    if (typeof window === "undefined") return null;
 
-    if (!SpeechRecognition) {
-      return null;
-    }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
 
-    const instance = new SpeechRecognition();
-    instance.lang = "en-US";
+    const instance = new SR();
+    instance.lang = "en-IN";
     instance.interimResults = false;
     instance.maxAlternatives = 1;
     return instance;
   }, []);
 
   useEffect(() => {
-    if (!enabled || !question) {
-      return;
-    }
+    if (!enabled || !question) return;
+    if (typeof window === "undefined") return;
+    if (!window.speechSynthesis) return;
 
-    if (typeof window === "undefined" || !window.speechSynthesis) {
-      return;
-    }
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(question);
     utterance.rate = 1;
@@ -52,34 +42,40 @@ export default function AudioControls({
   }, [enabled, question]);
 
   useEffect(() => {
-    if (!recognition) {
-      return;
-    }
+    if (!recognition) return;
 
-    const handleResult = (event: SpeechRecognitionEvent) => {
-      const transcript = event.results[0][0].transcript;
-      onTranscript(transcript);
+    const handleResult = (event: any) => {
+      const transcript = event.results?.[0]?.[0]?.transcript ?? "";
+      if (transcript) onTranscript(transcript);
     };
 
-    const handleEnd = () => {
-      setListening(false);
-    };
+    const handleEnd = () => setListening(false);
+    const handleError = () => setListening(false);
 
     recognition.addEventListener("result", handleResult);
     recognition.addEventListener("end", handleEnd);
+    recognition.addEventListener("error", handleError);
 
     return () => {
       recognition.removeEventListener("result", handleResult);
       recognition.removeEventListener("end", handleEnd);
+      recognition.removeEventListener("error", handleError);
     };
   }, [recognition, onTranscript]);
 
   const handleListen = () => {
     if (!recognition) {
+      alert("Speech recognition not supported in this browser.");
       return;
     }
+    if (listening) return;
+
     setListening(true);
-    recognition.start();
+    try {
+      recognition.start();
+    } catch {
+      setListening(false);
+    }
   };
 
   return (
@@ -92,6 +88,7 @@ export default function AudioControls({
       >
         {listening ? "Listening..." : "🎙️ Use Mic"}
       </button>
+
       <span className="helper">
         {recognition
           ? "Web Speech API enabled"
