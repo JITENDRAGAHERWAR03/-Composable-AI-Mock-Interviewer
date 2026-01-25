@@ -89,17 +89,19 @@ AudioControls.tsx
 npm create next-app@latest ai-mock-interviewer --ts
 cd ai-mock-interviewer
 cd ai-mock-interviewer
+```
 Add environment key
 
 Create .env.local:
-
+```
 GEMINI_API_KEY=your_api_key_here
 GEMINI_MODEL=gemini-2.0-flash
+```
 Run
-
+```
 npm run dev
 Open: http://localhost:3000
-
+```
 🧪 Demo Flow (For Judges)
 Select Tech Interview → Data Analyst
 
