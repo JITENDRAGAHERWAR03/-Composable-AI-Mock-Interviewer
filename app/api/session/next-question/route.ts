@@ -11,6 +11,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
+  if (session.currentTurn >= session.turns) {
+    return NextResponse.json({ done: true });
+  }
+
   const usedQuestions = new Set(session.answers.map((entry) => entry.question));
   const question = generateQuestion({
     role: session.role,
@@ -25,9 +29,22 @@ export async function POST(request: Request) {
   session.lastQuestion = question;
   saveSession(session);
 
+  const focusSkill =
+    session.focusAreas[session.currentTurn % session.focusAreas.length] ||
+    "general";
+  const difficulty =
+    session.currentTurn >= 4
+      ? "hard"
+      : session.currentTurn >= 3
+        ? "medium"
+        : "easy";
+
   return NextResponse.json({
     turn: session.currentTurn,
     turns: session.turns,
-    question,
+    question: question.question,
+    turnIndex: session.currentTurn,
+    focus_skill: focusSkill,
+    difficulty,
   });
 }
