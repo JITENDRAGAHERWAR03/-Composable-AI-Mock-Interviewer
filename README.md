@@ -78,3 +78,14 @@ BlocksPanel.tsx
 ChatPanel.tsx
 OutputPanel.tsx
 AudioControls.tsx
+
+
+---
+
+## ⚙️ Setup
+
+1. Create project
+```bash
+npm create next-app@latest ai-mock-interviewer --ts
+cd ai-mock-interviewer
+
