@@ -1,5 +1,5 @@
 import { adaptivePrompts, roleQuestions } from "./prompts";
-import { CandidateProfile, QuestionPayload } from "./schema";
+import { QuestionPayload } from "./schema";
 
 const pickAdaptive = (answer: string) => {
   const normalized = answer.toLowerCase();
@@ -15,7 +15,6 @@ export function generateQuestion({
   lastAnswer,
   usedQuestions,
   turn,
-  profile,
 }: {
   role: "hr" | "tech" | "behavioral";
   context: string;
@@ -23,37 +22,7 @@ export function generateQuestion({
   lastAnswer: string | null;
   usedQuestions: Set<string>;
   turn: number;
-  profile?: CandidateProfile | null;
 }): QuestionPayload {
-  const profileSkills = profile?.skills?.length ? profile.skills : [];
-  const profileProjects = profile?.projects?.length ? profile.projects : [];
-
-  if (profileProjects.length > 0) {
-    const project = profileProjects[turn % profileProjects.length];
-    const question = `Tell me about your project ${project.name}. What was the goal, your role, and the impact?`;
-    if (!usedQuestions.has(question)) {
-      return {
-        id: `project_${turn}`,
-        question,
-        rationale:
-          "Resume-based project question. Follow up: ask about tradeoffs or metrics.",
-      };
-    }
-  }
-
-  if (profileSkills.length > 0) {
-    const skill = profileSkills[turn % profileSkills.length];
-    const question = `Describe a time you used ${skill} to solve a problem. What tradeoffs did you consider?`;
-    if (!usedQuestions.has(question)) {
-      return {
-        id: `skill_${turn}`,
-        question,
-        rationale:
-          "Resume-based skill prompt. Follow up: ask for a specific example and measurable result.",
-      };
-    }
-  }
-
   if (lastAnswer) {
     const adaptive = pickAdaptive(lastAnswer);
     if (adaptive && !usedQuestions.has(adaptive.question)) {

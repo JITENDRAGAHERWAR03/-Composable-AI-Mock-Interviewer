@@ -26,17 +26,14 @@ export function createSession({
   context,
   preset,
   turns = 5,
-  profile = null,
 }: {
   role: InterviewRole;
   context: string;
   preset: string | null;
   turns?: number;
-  profile?: InterviewSession["profile"];
 }): InterviewSession {
   const resolvedContext = preset ? presets[preset] || context : context;
-  const focusAreas =
-    profile?.skills?.length ? profile.skills : focusFromContext(resolvedContext);
+  const focusAreas = focusFromContext(resolvedContext);
   const session: InterviewSession = {
     id: createId(),
     role,
@@ -49,7 +46,6 @@ export function createSession({
     scores: [],
     lastQuestion: null,
     focusAreas: focusAreas.length > 0 ? focusAreas : ["general"],
-    profile,
   };
   sessions.set(session.id, session);
   return session;
