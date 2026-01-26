@@ -13,10 +13,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  const turnIndex = Number(body.turnIndex || session.currentTurn || 0);
-  const focusSkill = String(body.focus_skill || "");
-  const difficulty = String(body.difficulty || "");
-
   if (!session.lastQuestion && !questionText) {
     return NextResponse.json(
       { error: "Question not initialized" },
@@ -35,9 +31,6 @@ export async function POST(request: Request) {
     questionId: session.lastQuestion?.id || `manual_${Date.now()}`,
     question: activeQuestion,
     answer,
-    turnIndex,
-    focus_skill: focusSkill,
-    difficulty,
     evaluation,
   });
   session.scores.push(evaluation.score);
@@ -54,7 +47,6 @@ export async function POST(request: Request) {
         depth: Math.max(4, evaluation.score * 2 - 1),
         confidence: Math.max(4, evaluation.score * 2 - 1),
       },
-      reasons: evaluation.reasons,
     },
     feedback: {
       tips: evaluation.improvements.length
