@@ -33,6 +33,7 @@ export function createSession({
   turns?: number;
 }): InterviewSession {
   const resolvedContext = preset ? presets[preset] || context : context;
+  const focusAreas = focusFromContext(resolvedContext);
   const session: InterviewSession = {
     id: createId(),
     role,
@@ -44,7 +45,7 @@ export function createSession({
     memory: [],
     scores: [],
     lastQuestion: null,
-    focusAreas: focusFromContext(resolvedContext),
+    focusAreas: focusAreas.length > 0 ? focusAreas : ["general"],
   };
   sessions.set(session.id, session);
   return session;

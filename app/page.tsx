@@ -15,6 +15,7 @@ export default function HomePage() {
   const [role, setRole] = useState("hr");
   const [preset, setPreset] = useState("");
   const [context, setContext] = useState("");
+  const [turns, setTurns] = useState(5);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [status, setStatus] = useState("Waiting to start");
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,7 @@ export default function HomePage() {
     const response = await fetch("/api/session/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role, context, preset: preset || null }),
+      body: JSON.stringify({ role, context, preset: preset || null, turns }),
     });
     const payload = await response.json();
     setLoading(false);
@@ -81,6 +82,18 @@ export default function HomePage() {
             onChange={(event) => setContext(event.target.value)}
             placeholder="Paste resume highlights, role focus, or skills (e.g., React, Node, leadership)."
           />
+        </label>
+        <label className="field">
+          Number of Questions
+          <select
+            value={turns}
+            onChange={(event) => setTurns(Number(event.target.value))}
+          >
+            <option value={3}>3 questions</option>
+            <option value={5}>5 questions</option>
+            <option value={7}>7 questions</option>
+            <option value={10}>10 questions</option>
+          </select>
         </label>
       </div>
       <div className="actions">
