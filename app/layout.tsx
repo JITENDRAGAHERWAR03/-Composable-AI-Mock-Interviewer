@@ -1,4 +1,5 @@
 import "./globals.css";
+import ThemeToggle from "../components/ThemeToggle";
 
 export const metadata = {
   title: "Composable AI Mock Interviewer",
@@ -22,6 +23,9 @@ export default function RootLayout({
                 Build your interview flow from composable blocks: role selection,
                 adaptive questions, memory, evaluation, and feedback.
               </p>
+            </div>
+            <div>
+              <ThemeToggle />
             </div>
           </header>
           {children}
