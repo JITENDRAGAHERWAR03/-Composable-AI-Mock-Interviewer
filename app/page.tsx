@@ -1,5 +1,6 @@
 "use client";
 
+import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -19,6 +20,89 @@ export default function HomePage() {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [status, setStatus] = useState("Waiting to start");
   const [loading, setLoading] = useState(false);
+  const [fileStatus, setFileStatus] = useState("");
+  const [fileError, setFileError] = useState("");
+  const [pdfReady, setPdfReady] = useState(false);
+  const [docxReady, setDocxReady] = useState(false);
+
+  const extractPdfText = async (file: File) => {
+    const pdfjsLib = (window as typeof window & { pdfjsLib?: any }).pdfjsLib;
+    if (!pdfjsLib) {
+      throw new Error("PDF parser failed to load. Please try again.");
+    }
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js";
+
+    const data = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data }).promise;
+    let text = "";
+    for (let pageIndex = 1; pageIndex <= pdf.numPages; pageIndex += 1) {
+      const page = await pdf.getPage(pageIndex);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map((item) => ("str" in item ? item.str : ""))
+        .join(" ");
+      text += `${pageText}\n`;
+    }
+    return text.trim();
+  };
+
+  const extractDocxText = async (file: File) => {
+    const mammoth = (window as typeof window & { mammoth?: any }).mammoth;
+    if (!mammoth) {
+      throw new Error("DOCX parser failed to load. Please try again.");
+    }
+    const { value } = await mammoth.extractRawText({
+      arrayBuffer: await file.arrayBuffer(),
+    });
+    return value.trim();
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const [file] = event.target.files ?? [];
+    if (!file) {
+      return;
+    }
+
+    setFileError("");
+    setFileStatus(`Reading ${file.name}...`);
+
+    try {
+      const extension = file.name.split(".").pop()?.toLowerCase();
+      let extracted = "";
+
+      if (extension === "pdf") {
+        if (!pdfReady) {
+          throw new Error("PDF parser is still loading. Please try again.");
+        }
+        extracted = await extractPdfText(file);
+      } else if (extension === "docx") {
+        if (!docxReady) {
+          throw new Error("DOCX parser is still loading. Please try again.");
+        }
+        extracted = await extractDocxText(file);
+      } else {
+        throw new Error("Please upload a PDF or DOCX file.");
+      }
+
+      if (!extracted) {
+        throw new Error("No readable text found in the file.");
+      }
+
+      setContext((prev) => {
+        const separator = prev.trim() ? "\n\n" : "";
+        return `${prev}${separator}${extracted}`.trim();
+      });
+      setFileStatus(`Added text from ${file.name}.`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to read the file.";
+      setFileError(message);
+      setFileStatus("");
+    } finally {
+      event.target.value = "";
+    }
+  };
 
   const handleStart = async () => {
     setLoading(true);
@@ -41,6 +125,16 @@ export default function HomePage() {
 
   return (
     <main className="panel">
+      <Script
+        src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"
+        onLoad={() => setPdfReady(true)}
+        onError={() => setFileError("Unable to load PDF parser.")}
+      />
+      <Script
+        src="https://unpkg.com/mammoth@1.7.1/mammoth.browser.min.js"
+        onLoad={() => setDocxReady(true)}
+        onError={() => setFileError("Unable to load DOCX parser.")}
+      />
       <div className="actions" style={{ marginBottom: "16px" }}>
         <div className="badge" aria-live="polite">
           <span className={"badge__dot badge__dot--active"}></span>
@@ -82,6 +176,19 @@ export default function HomePage() {
             onChange={(event) => setContext(event.target.value)}
             placeholder="Paste resume highlights, role focus, or skills (e.g., React, Node, leadership)."
           />
+        </label>
+        <label className="field field--full">
+          Upload Resume (PDF/DOCX)
+          <input
+            type="file"
+            accept=".pdf,.docx"
+            onChange={handleFileUpload}
+          />
+          <p className="helper">
+            Files are parsed in your browser and never uploaded to the server.
+          </p>
+          {fileStatus ? <p className="helper">{fileStatus}</p> : null}
+          {fileError ? <p className="helper" style={{ color: "#c92a2a" }}>{fileError}</p> : null}
         </label>
         <label className="field">
           Number of Questions
