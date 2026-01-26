@@ -24,6 +24,8 @@ export default function HomePage() {
   const [fileError, setFileError] = useState("");
   const [pdfReady, setPdfReady] = useState(false);
   const [docxReady, setDocxReady] = useState(false);
+  const [pdfError, setPdfError] = useState("");
+  const [docxError, setDocxError] = useState("");
 
   const extractPdfText = async (file: File) => {
     const pdfjsLib = (window as typeof window & { pdfjsLib?: any }).pdfjsLib;
@@ -74,11 +76,17 @@ export default function HomePage() {
       let extracted = "";
 
       if (extension === "pdf") {
+        if (pdfError) {
+          throw new Error(pdfError);
+        }
         if (!pdfReady) {
           throw new Error("PDF parser is still loading. Please try again.");
         }
         extracted = await extractPdfText(file);
       } else if (extension === "docx") {
+        if (docxError) {
+          throw new Error(docxError);
+        }
         if (!docxReady) {
           throw new Error("DOCX parser is still loading. Please try again.");
         }
@@ -130,12 +138,22 @@ export default function HomePage() {
       <Script
         src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"
         onLoad={() => setPdfReady(true)}
-        onError={() => setFileError("Unable to load PDF parser.")}
+        onError={() => {
+          const message = "Unable to load PDF parser. Please check your network.";
+          setPdfError(message);
+          setFileError(message);
+        }}
+        strategy="afterInteractive"
       />
       <Script
         src="https://unpkg.com/mammoth@1.7.1/mammoth.browser.min.js"
         onLoad={() => setDocxReady(true)}
-        onError={() => setFileError("Unable to load DOCX parser.")}
+        onError={() => {
+          const message = "Unable to load DOCX parser. Please check your network.";
+          setDocxError(message);
+          setFileError(message);
+        }}
+        strategy="afterInteractive"
       />
       <div className="actions" style={{ marginBottom: "16px" }}>
         <div className="badge" aria-live="polite">
@@ -189,6 +207,12 @@ export default function HomePage() {
           <p className="helper">
             Files are parsed in your browser and never uploaded to the server.
           </p>
+          {!pdfError && !docxError ? (
+            <p className="helper">
+              PDF parser: {pdfReady ? "ready" : "loading"} · DOCX parser:{" "}
+              {docxReady ? "ready" : "loading"}
+            </p>
+          ) : null}
           {fileStatus ? <p className="helper">{fileStatus}</p> : null}
           {fileError ? <p className="helper" style={{ color: "#c92a2a" }}>{fileError}</p> : null}
         </label>
