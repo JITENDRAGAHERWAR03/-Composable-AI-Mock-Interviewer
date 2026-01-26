@@ -16,6 +16,7 @@ export default function InterviewClient() {
   const [answer, setAnswer] = useState("");
   const [output, setOutput] = useState<any>(null);
   const [memory, setMemory] = useState<any>(null);
+  const [showRubric, setShowRubric] = useState(false);
 
   async function loadQuestion() {
     const res = await fetch("/api/session/next-question", {
@@ -178,6 +179,24 @@ export default function InterviewClient() {
               </ul>
             </div>
 
+            <div style={{ marginTop: 8 }}>
+              <b>Why this score:</b>
+              <ul>
+                <li>Clarity: {output.evaluation.reasons?.clarity || "—"}</li>
+                <li>Relevance: {output.evaluation.reasons?.relevance || "—"}</li>
+                <li>Depth: {output.evaluation.reasons?.depth || "—"}</li>
+                <li>Confidence: {output.evaluation.reasons?.confidence || "—"}</li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => setShowRubric(true)}
+              style={{ marginTop: 8 }}
+              type="button"
+            >
+              How scoring works?
+            </button>
+
             <div>
               <b>Tips:</b>
               <ul>
@@ -196,6 +215,54 @@ export default function InterviewClient() {
           </>
         )}
       </section>
+
+      {showRubric && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              maxWidth: 520,
+              width: "100%",
+              padding: 20,
+              boxShadow: "0 16px 40px rgba(15, 23, 42, 0.2)",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>Scoring Rubric</h3>
+            <p style={{ marginTop: 0 }}>
+              Clarity: 0–3 unclear • 4–7 somewhat structured • 8–10 crisp,
+              structured (STAR/points)
+            </p>
+            <p>
+              Relevance: 0–3 off-topic • 4–7 partially relevant • 8–10 directly
+              answers + example
+            </p>
+            <p>
+              Depth: 0–3 surface • 4–7 some detail • 8–10 reasoning, tradeoffs,
+              metrics
+            </p>
+            <p>
+              Confidence: 0–3 lots of filler • 4–7 okay • 8–10 assertive,
+              concise
+            </p>
+            <button onClick={() => setShowRubric(false)} type="button">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

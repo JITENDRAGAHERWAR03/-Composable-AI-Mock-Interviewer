@@ -48,10 +48,42 @@ export function evaluateAnswer({
     improvements.push("Include measurable impact");
   }
 
+  const clarityReason =
+    lengthScore >= 3
+      ? "Structured response with clear context and outcomes."
+      : lengthScore >= 2
+        ? "Mostly clear but could use more structure."
+        : "Hard to follow due to limited detail.";
+  const relevanceReason =
+    relevanceScore >= 2
+      ? "Directly ties to the role focus areas."
+      : relevanceScore >= 1
+        ? "Some relevance, but needs stronger alignment."
+        : "Connection to the role focus areas is unclear.";
+  const depthReason =
+    lengthScore >= 3
+      ? "Provides reasoning and supporting details."
+      : lengthScore >= 2
+        ? "Covers basics but lacks deeper insights."
+        : "Surface-level response without depth.";
+  const confidenceReason =
+    words.length >= 60
+      ? "Delivered with enough substance to feel confident."
+      : words.length >= 30
+        ? "Some confidence, but could be more decisive."
+        : "Feels tentative due to brevity.";
+
   return {
     score,
     feedback: tipsByScore[score],
+    reasons: {
+      clarity: clarityReason,
+      relevance: relevanceReason,
+      depth: depthReason,
+      confidence: confidenceReason,
+    },
     strengths,
     improvements,
+    followup_suggestion: "Share one metric or result that proves impact.",
   };
 }

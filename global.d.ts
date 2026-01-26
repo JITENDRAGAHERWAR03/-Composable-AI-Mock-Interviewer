@@ -6,3 +6,5 @@ declare global {
     webkitSpeechRecognition?: any;
   }
 }
+
+declare module "pdf-parse";
