@@ -40,7 +40,9 @@ export default function HomePage() {
       const page = await pdf.getPage(pageIndex);
       const content = await page.getTextContent();
       const pageText = content.items
-        .map((item) => ("str" in item ? item.str : ""))
+        .map((item: unknown) =>
+          item && typeof item === "object" && "str" in item ? String(item.str) : "",
+        )
         .join(" ");
       text += `${pageText}\n`;
     }
