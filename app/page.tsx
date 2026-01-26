@@ -15,9 +15,30 @@ export default function HomePage() {
   const [role, setRole] = useState("hr");
   const [preset, setPreset] = useState("");
   const [context, setContext] = useState("");
+  const [resumeText, setResumeText] = useState("");
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [resumeStatus, setResumeStatus] = useState("No resume uploaded");
+  const [turns, setTurns] = useState(5);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [status, setStatus] = useState("Waiting to start");
   const [loading, setLoading] = useState(false);
+
+  const extractResume = async () => {
+    if (!resumeFile) return;
+    setResumeStatus("Extracting resume insights...");
+    const form = new FormData();
+    form.append("file", resumeFile);
+    const res = await fetch("/api/resume/extract", { method: "POST", body: form });
+    const data = await res.json();
+    if (!res.ok) {
+      setResumeStatus(data.error || "Resume extraction failed");
+      return;
+    }
+    setProfile(data);
+    setResumeText(data.rawText || "");
+    setResumeStatus("Resume parsed successfully");
+  };
 
   const handleStart = async () => {
     setLoading(true);
@@ -25,7 +46,14 @@ export default function HomePage() {
     const response = await fetch("/api/session/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role, context, preset: preset || null }),
+      body: JSON.stringify({
+        role,
+        context,
+        preset: preset || null,
+        turns,
+        resumeText,
+        profile,
+      }),
     });
     const payload = await response.json();
     setLoading(false);
@@ -81,6 +109,67 @@ export default function HomePage() {
             onChange={(event) => setContext(event.target.value)}
             placeholder="Paste resume highlights, role focus, or skills (e.g., React, Node, leadership)."
           />
+        </label>
+        <label className="field field--full">
+          Resume Upload (PDF)
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={(event) => setResumeFile(event.target.files?.[0] || null)}
+          />
+          <button
+            className="btn"
+            type="button"
+            onClick={extractResume}
+            disabled={!resumeFile}
+          >
+            Extract Resume Insights
+          </button>
+          <span className="helper">{resumeStatus}</span>
+        </label>
+        {profile && (
+          <div className="field field--full">
+            <div className="helper">Extracted Skills</div>
+            <div className="flow">
+              {(profile.skills || []).map((skill: string) => (
+                <span key={skill} className="flow__block">
+                  {skill}
+                </span>
+              ))}
+            </div>
+            {profile.projects?.length ? (
+              <>
+                <div className="helper" style={{ marginTop: 12 }}>
+                  Projects
+                </div>
+                <ul>
+                  {profile.projects.map((project: any) => (
+                    <li key={project.name}>{project.name}</li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </div>
+        )}
+        <label className="field field--full">
+          Resume Text (fallback)
+          <textarea
+            value={resumeText}
+            onChange={(event) => setResumeText(event.target.value)}
+            placeholder="Paste resume text if PDF parsing fails."
+          />
+        </label>
+        <label className="field">
+          Number of Questions
+          <select
+            value={turns}
+            onChange={(event) => setTurns(Number(event.target.value))}
+          >
+            <option value={3}>3 questions</option>
+            <option value={5}>5 questions</option>
+            <option value={7}>7 questions</option>
+            <option value={10}>10 questions</option>
+          </select>
         </label>
       </div>
       <div className="actions">

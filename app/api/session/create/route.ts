@@ -7,8 +7,21 @@ export async function POST(request: Request) {
   const body = await request.json();
   const role = (body.role || "hr") as InterviewRole;
   const context = String(body.context || "");
+  const resumeText = String(body.resumeText || "");
   const preset = body.preset ? String(body.preset) : null;
-  const session = createSession({ role, context, preset });
+  const profile = body.profile ?? null;
+  const rawTurns = Number(body.turns || 5);
+  const turns = Number.isFinite(rawTurns)
+    ? Math.min(Math.max(Math.round(rawTurns), 3), 10)
+    : 5;
+  const combinedContext = [context, resumeText].filter(Boolean).join("\n");
+  const session = createSession({
+    role,
+    context: combinedContext,
+    preset,
+    turns,
+    profile,
+  });
 
   return NextResponse.json({
     sessionId: session.id,

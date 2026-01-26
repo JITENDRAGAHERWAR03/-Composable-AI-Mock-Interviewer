@@ -23,6 +23,7 @@ export async function POST(request: Request) {
     lastAnswer: session.answers.at(-1)?.answer ?? null,
     usedQuestions,
     turn: session.currentTurn + 1,
+    profile: session.profile ?? null,
   });
 
   session.currentTurn += 1;
