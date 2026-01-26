@@ -1,13 +1,15 @@
 # 🎤 Composable AI Mock Interviewer
-## 🚀 Live Demo
+
+## 🚀 Live Demo  
 👉 https://composable-ai-mock-interviewer-pi.vercel.app/
 
 An AI-powered mock interview platform that simulates **real interviews** (HR / Tech / Behavioral) with **adaptive questioning**, **live evaluation**, **audio mode**, and a **final performance report** — built for rapid MVP demos and hackathons.
 
-This project lets a candidate:
+This project enables a candidate to:
+
 1. Choose interview type & role  
-2. Provide skills / resume context  
-3. Answer 5 adaptive questions  
+2. Provide skills or resume context  
+3. Answer adaptive questions  
 4. Get instant scores + coaching tips  
 5. Receive a final structured interview report  
 
@@ -17,34 +19,38 @@ Designed with a **Composable Blocks** mindset where each stage (Question, Memory
 
 ## 🚀 Features
 
-- 🧩 **Composable Pipeline**
-  - Role Block  
-  - Question Generator  
-  - Memory Block  
-  - Evaluation Block  
-  - Feedback Block  
-  - Final Report Block  
+### 🧩 Composable Pipeline
+- Role Block  
+- Question Generator  
+- Memory Block  
+- Evaluation Block  
+- Feedback Block  
+- Final Report Block  
 
-- 🧠 **Adaptive Interview Logic**
-  - Each next question adapts based on:
-    - Previous answer quality
-    - Weak/strong skills
-    - Role & interview type
+Each block is independent and reusable — perfect for rapid prototyping and AI workflows.
 
-- 📊 **Live Evaluation**
-  - Scores for: Clarity, Relevance, Depth, Confidence
-  - Overall score per answer
-  - Strengths & improvement areas
+### 🧠 Adaptive Interview Logic
+Each next question adapts based on:
+- Previous answer quality  
+- Weak / strong skills  
+- Role & interview type  
 
-- 🎧 **Audio Mode**
-  - 🔊 Speak questions (Text-to-Speech)
-  - 🎙️ Answer using mic (Speech-to-Text)
+This makes every interview feel *real* and personalized.
 
-- 📄 **Final Interview Report**
-  - Overall score
-  - Skill-wise breakdown
-  - Top strengths & gaps
-  - 7-day improvement plan
+### 📊 Live Evaluation
+- Scores for: **Clarity, Relevance, Depth, Confidence**  
+- Overall score per answer  
+- Strengths & improvement areas in real time  
+
+### 🎧 Audio Mode
+- 🔊 Speak questions (Text-to-Speech)  
+- 🎙️ Answer using mic (Speech-to-Text)  
+
+### 📄 Final Interview Report
+- Overall score  
+- Skill-wise breakdown  
+- Top strengths & gaps  
+- 7-day improvement plan  
 
 ---
 
@@ -56,32 +62,54 @@ Designed with a **Composable Blocks** mindset where each stage (Question, Memory
 - **Web Speech API** – Audio input/output  
 
 ---
-## 🎥 Demo vedio
-👉 http/ youtube.com
+
+## 🎥 Demo Video  
+👉 https://youtu.be/QN_AsVww9dI  
+
+This video walks through the entire product from setup to the final report — ready for hackathon submission.
+
+---
 
 ## 📁 Project Structure
 
+
+
 ai-mock-interviewer/
-app/
-page.tsx # Setup screen
-interview/page.tsx # Interview UI
-report/page.tsx # Final report
-api/
-session/create/route.ts
-session/next-question/route.ts
-session/submit-answer/route.ts
-session/report/route.ts
-lib/
-store.ts
-llm.ts
-prompts.ts
-schema.ts
-scoring.ts
-components/
-BlocksPanel.tsx
-ChatPanel.tsx
-OutputPanel.tsx
-AudioControls.tsx
+├── app/
+│   ├── page.tsx              # Setup screen
+│   ├── interview/
+│   │   └── page.tsx          # Interview UI
+│   └── report/
+│       └── page.tsx          # Final report
+│
+├── api/
+│   └── session/
+│       ├── create/
+│       │   └── route.ts
+│       ├── next-question/
+│       │   └── route.ts
+│       ├── submit-answer/
+│       │   └── route.ts
+│       └── report/
+│           └── route.ts
+│
+├── lib/
+│   ├── store.ts
+│   ├── llm.ts
+│   ├── prompts.ts
+│   ├── schema.ts
+│   └── scoring.ts
+│
+├── components/
+│   ├── BlocksPanel.tsx
+│   ├── ChatPanel.tsx
+│   ├── OutputPanel.tsx
+│   └── AudioControls.tsx
+│
+├── README.md
+├── next.config.js
+└── package.json
+
 
 
 ---
@@ -106,6 +134,7 @@ Run
 npm run dev
 Open: http://localhost:3000
 ```
+
 🧪 Demo Flow (For Judges)
 Select Tech Interview → Data Analyst
 
@@ -129,6 +158,7 @@ Complete 5 turns
 
 Show Final Report
 
+---
 🎯 Why This Stands Out
 Clear end-to-end user journey
 
@@ -140,9 +170,24 @@ Works in 24-hour hackathon scope
 
 Easy to extend into a real product
 
+---
+🗺 Roadmap
+
+🌗 Dark / Light Mode Toggle
+
+📄 Resume Upload & Resume-Based Questions
+
+📊 User Dashboard & Progress Tracking
+
+📥 Downloadable PDF Report
+
+---
 👨‍💻 Author
+
 Built by Jitendra Gaherwar
+
 B.Tech IT | Data & AI Developer
+
 Focused on building practical AI tools for learning and productivity.
 
 
