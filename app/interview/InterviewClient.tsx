@@ -9,6 +9,7 @@ export default function InterviewClient() {
   const sessionId = sp.get("sessionId") || "";
 
   const [turnIndex, setTurnIndex] = useState(1);
+  const [totalTurns, setTotalTurns] = useState(5);
   const [question, setQuestion] = useState("");
   const [focusSkill, setFocusSkill] = useState("");
   const [difficulty, setDifficulty] = useState("easy");
@@ -28,6 +29,7 @@ export default function InterviewClient() {
       return;
     }
     setTurnIndex(data.turnIndex);
+    setTotalTurns(data.turns || 5);
     setQuestion(data.question);
     setFocusSkill(data.focus_skill);
     setDifficulty(data.difficulty);
@@ -114,7 +116,9 @@ export default function InterviewClient() {
             alignItems: "center",
           }}
         >
-          <h2 style={{ margin: 0 }}>Turn {turnIndex}/5</h2>
+          <h2 style={{ margin: 0 }}>
+            Turn {turnIndex}/{totalTurns}
+          </h2>
           <div style={{ fontSize: 12, opacity: 0.7 }}>
             Focus: {focusSkill} • {difficulty}
           </div>
