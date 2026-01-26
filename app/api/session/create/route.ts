@@ -22,7 +22,6 @@ export async function POST(request: Request) {
     turns,
     profile,
   });
-  const session = createSession({ role, context, preset, turns });
 
   return NextResponse.json({
     sessionId: session.id,
