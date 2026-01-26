@@ -37,6 +37,7 @@ export function createSession({
   const resolvedContext = preset ? presets[preset] || context : context;
   const focusAreas =
     profile?.skills?.length ? profile.skills : focusFromContext(resolvedContext);
+  const focusAreas = focusFromContext(resolvedContext);
   const session: InterviewSession = {
     id: createId(),
     role,

@@ -54,6 +54,7 @@ export default function HomePage() {
         resumeText,
         profile,
       }),
+      body: JSON.stringify({ role, context, preset: preset || null, turns }),
     });
     const payload = await response.json();
     setLoading(false);
