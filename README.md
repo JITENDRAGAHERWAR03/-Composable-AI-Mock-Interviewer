@@ -72,7 +72,7 @@ This video walks through the entire product from setup to the final report — r
 
 ## 📁 Project Structure
 
-
+```
 
 ai-mock-interviewer/
 ├── app/
@@ -110,7 +110,7 @@ ai-mock-interviewer/
 ├── next.config.js
 └── package.json
 
-
+```
 
 ---
 
