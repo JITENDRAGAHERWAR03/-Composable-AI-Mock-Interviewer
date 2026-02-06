@@ -63,13 +63,6 @@ This makes every interview feel *real* and personalized.
 
 ---
 
-## 🎥 Demo Video  
-👉 https://youtu.be/QN_AsVww9dI  
-
-This video walks through the entire product from setup to the final report — ready for hackathon submission.
-
----
-
 ## 📁 Project Structure
 
 ```
