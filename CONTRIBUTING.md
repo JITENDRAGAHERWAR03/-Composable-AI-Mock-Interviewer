@@ -150,3 +150,5 @@ Constructive feedback only — kindness first
 📄 License
 
 By contributing, you agree that your work will be licensed under the project’s open-source license.
+© 2026 Jitendra Gaherwar. Released under the MIT License.
+
