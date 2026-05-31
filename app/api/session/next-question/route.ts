@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   saveSession(session);
 
   const focusSkill =
-    session.focusAreas[session.currentTurn % session.focusAreas.length] ||
+    session.focusAreas[(session.currentTurn - 1) % session.focusAreas.length] ||
     "general";
   const difficulty =
     session.currentTurn >= 4
