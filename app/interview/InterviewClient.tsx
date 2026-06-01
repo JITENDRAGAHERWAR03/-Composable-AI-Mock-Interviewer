@@ -130,6 +130,7 @@ export default function InterviewClient() {
             padding: 12,
             borderRadius: 12,
             background: "#f6f6f6",
+            color:"black",
           }}
         >
           <b>Q:</b> {question}
