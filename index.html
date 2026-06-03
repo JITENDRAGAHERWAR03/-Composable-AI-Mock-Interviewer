@@ -17,9 +17,14 @@
             questions, memory, evaluation, and feedback.
           </p>
         </div>
-        <div class="status" aria-live="polite">
-          <span id="statusDot" class="status__dot"></span>
-          <span id="statusText">Waiting to start</span>
+        <div class="header__right">
+          <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+            <span class="theme-toggle__icon">🌙</span>
+          </button>
+          <div class="status" aria-live="polite">
+            <span id="statusDot" class="status__dot"></span>
+            <span id="statusText">Waiting to start</span>
+          </div>
         </div>
       </header>
 
@@ -108,6 +113,35 @@
         </div>
       </section>
     </main>
+
+    <script>
+      // Theme Toggle Initialization
+      (function() {
+        const html = document.documentElement;
+        const themeToggle = document.getElementById('themeToggle');
+        
+        // Load saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+        
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', function() {
+          const currentTheme = html.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          html.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          updateThemeIcon(newTheme);
+        });
+        
+        // Update icon based on theme
+        function updateThemeIcon(theme) {
+          const icon = document.querySelector('.theme-toggle__icon');
+          icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+      })();
+    </script>
 
     <script src="app.js"></script>
   </body>
