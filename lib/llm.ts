@@ -35,7 +35,7 @@ export function generateQuestion({
   }
 
   if (focusAreas.length > 0) {
-    const focus = focusAreas[turn % focusAreas.length];
+    const focus = focusAreas[(turn - 1) % focusAreas.length];
     const question = `How have you applied ${focus} in your recent work?`;
     if (!usedQuestions.has(question)) {
       return {
