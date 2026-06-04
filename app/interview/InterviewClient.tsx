@@ -3,6 +3,34 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+const statusTimelineLegend = [
+  {
+    title: "Submitted",
+    icon: "📝",
+    description: "Issue has been received and is awaiting triage.",
+  },
+  {
+    title: "Assigned",
+    icon: "👤",
+    description: "A team member is assigned to investigate the issue.",
+  },
+  {
+    title: "In Progress",
+    icon: "⚙️",
+    description: "Work is actively underway to resolve the issue.",
+  },
+  {
+    title: "Escalated",
+    icon: "⚠️",
+    description: "The issue is elevated for faster review or specialist support.",
+  },
+  {
+    title: "Resolved",
+    icon: "✅",
+    description: "The issue has been addressed and marked as complete.",
+  },
+];
+
 export default function InterviewClient() {
   const sp = useSearchParams();
   const r = useRouter();
@@ -133,6 +161,22 @@ export default function InterviewClient() {
           }}
         >
           <b>Q:</b> {question}
+        </div>
+
+        <div className="timeline-legend">
+          {statusTimelineLegend.map((item) => (
+            <div key={item.title} className="timeline-legend__item">
+              <span className="timeline-legend__icon" aria-hidden="true">
+                {item.icon}
+              </span>
+              <div>
+                <div className="timeline-legend__label">{item.title}</div>
+                <div className="timeline-legend__description">
+                  {item.description}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
