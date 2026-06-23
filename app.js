@@ -257,6 +257,13 @@ function renderReport() {
   const strengths = state.scores.filter((score) => score >= 4).length;
   const improvements = state.scores.filter((score) => score <= 2).length;
 
+  // Build social share standard web intents
+  const shareText = `🚀 Just completed a mock interview on this AI platform and got an overall evaluation score of ${avgScore.toFixed(1)}/5! Ready to crush my technical interviews. Check it out:`;
+  const projectUrl = window.location.origin;
+
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(projectUrl)}`;
+  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(projectUrl)}`;
+
   const summary = `
     <div class="report__summary">
       <div class="report__card">
@@ -274,6 +281,21 @@ function renderReport() {
       <div class="report__card">
         <h3>Focus Areas</h3>
         <p>${extractKeywords(state.context).slice(0, 3).join(", ") || "General"}</p>
+      </div>
+    </div>
+
+    <div class="share-section" style="margin: 24px 0; padding: 20px; background: rgba(0, 0, 0, 0.02); border-radius: 8px; text-align: center; border: 1px dashed rgba(0,0,0,0.15);">
+      <p style="font-weight: 600; margin-bottom: 14px; font-size: 1rem; color: var(--text-color, #333);">Proud of your score? Share your achievement with your network! 🎉</p>
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        
+        <a href="${twitterUrl}" target="_blank" rel="noopener noreferrer" class="btn" style="background-color: #000000; color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: inline-flex; align-items: center;">
+          Share on X / Twitter
+        </a>
+
+        <a href="${linkedinUrl}" target="_blank" rel="noopener noreferrer" class="btn" style="background-color: #0077b5; color: #ffffff; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: inline-flex; align-items: center;">
+          Share on LinkedIn
+        </a>
+
       </div>
     </div>
   `;
