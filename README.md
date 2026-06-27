@@ -113,7 +113,7 @@ ai-mock-interviewer/
 ```bash
 npm create next-app@latest ai-mock-interviewer --ts
 cd ai-mock-interviewer
-cd ai-mock-interviewer
+
 ```
 Add environment key
 
