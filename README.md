@@ -183,4 +183,16 @@ B.Tech IT | Data & AI Developer
 
 Focused on building practical AI tools for learning and productivity.
 
+## 🛠 Tech Stack
+- **Session Store** – Vercel KV (Redis-compatible) — serverless-safe, persists across function instances
 
+## ⚙️ Setup
+3. Add Vercel KV
+   - Create a KV store: Vercel Dashboard → Storage → Create Database → KV
+   - Pull credentials: `vercel env pull .env.local`
+   - Or manually add to `.env.local`:
+```
+     KV_REST_API_URL=...
+     KV_REST_API_TOKEN=...
+     KV_REST_API_READ_ONLY_TOKEN=...
+```

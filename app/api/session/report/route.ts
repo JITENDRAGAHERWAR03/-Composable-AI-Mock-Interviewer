@@ -1,19 +1,28 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/store";
+import { getSessionStore } from "@/lib/store";
 
-function buildReport(session: NonNullable<ReturnType<typeof getSession>>) {
-  const totalScore = session.scores.reduce((sum, score) => sum + score, 0);
-  const average = session.scores.length ? totalScore / session.scores.length : 0;
+function buildReport(session: any) {
+  const scores = session.turns
+    .map((turn: any) => turn.scores?.overall || 0)
+    .filter((score: number) => score > 0);
+  
+  const totalScore = scores.reduce((sum: number, score: number) => sum + score, 0);
+  const average = scores.length ? totalScore / scores.length : 0;
   const overallScore = Math.round(average * 2);
-  const skillScores = session.focusAreas.reduce((acc, skill) => {
+  
+  const skillScores = session.skills.reduce((acc: Record<string, number>, skill: string) => {
     acc[skill] = Math.min(10, Math.round(average * 2));
     return acc;
   }, {} as Record<string, number>);
 
-  const strengths = session.answers.flatMap((entry) => entry.evaluation.strengths);
-  const improvements = session.answers.flatMap(
-    (entry) => entry.evaluation.improvements
-  );
+  // Extract strengths and improvements from turns (placeholder logic)
+  const strengths = session.turns
+    .filter((turn: any) => turn.scores && turn.scores.overall > 7)
+    .map((turn: any) => `Strong response to: ${turn.question.slice(0, 30)}...`);
+  
+  const improvements = session.turns
+    .filter((turn: any) => turn.scores && turn.scores.overall < 5)
+    .map((turn: any) => `Need improvement on: ${turn.question.slice(0, 30)}...`);
 
   return {
     overall_score: overallScore,
@@ -35,31 +44,46 @@ function buildReport(session: NonNullable<ReturnType<typeof getSession>>) {
 export async function POST(request: Request) {
   const body = await request.json();
   const sessionId = String(body.sessionId || "");
-  const session = getSession(sessionId);
+  const store = getSessionStore();
+
+  const session = await store.get(sessionId);
 
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  const totalScore = session.scores.reduce((sum, score) => sum + score, 0);
-  const average = session.scores.length
-    ? totalScore / session.scores.length
-    : 0;
-  const strengths = session.scores.filter((score) => score >= 4).length;
-  const improvements = session.scores.filter((score) => score <= 2).length;
+  // Complete the session before generating report
+  await store.complete(sessionId);
+
+  const scores = session.turns
+    .map((turn) => turn.scores?.overall || 0)
+    .filter(score => score > 0);
+  
+  const totalScore = scores.reduce((sum, score) => sum + score, 0);
+  const average = scores.length ? totalScore / scores.length : 0;
+  const strengths = scores.filter((score) => score >= 4).length;
+  const improvements = scores.filter((score) => score <= 2).length;
 
   return NextResponse.json({
     report: buildReport(session),
     sessionId: session.id,
     role: session.role,
-    context: session.context,
-    answers: session.answers,
-    focusAreas: session.focusAreas,
+    context: session.skills.join(", "),
+    answers: session.turns.map(turn => ({
+      question: turn.question,
+      answer: turn.answer,
+      evaluation: {
+        score: turn.scores?.overall || 0,
+        strengths: [],
+        improvements: []
+      }
+    })),
+    focusAreas: session.skills,
     summary: {
       averageScore: Number(average.toFixed(1)),
       strengths,
       improvements,
-      totalTurns: session.turns,
+      totalTurns: session.turns.length,
     },
   });
 }
@@ -67,7 +91,9 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const sessionId = searchParams.get("sessionId") || "";
-  const session = getSession(sessionId);
+  const store = getSessionStore();
+
+  const session = await store.get(sessionId);
 
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });

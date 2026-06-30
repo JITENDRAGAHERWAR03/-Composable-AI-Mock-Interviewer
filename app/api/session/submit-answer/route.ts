@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession, saveSession } from "@/lib/store";
+import { getSessionStore } from "@/lib/store";
 import { evaluateAnswer } from "@/lib/scoring";
 
 export async function POST(request: Request) {
@@ -7,35 +7,51 @@ export async function POST(request: Request) {
   const sessionId = String(body.sessionId || "");
   const answer = String(body.answer || "").trim();
   const questionText = String(body.question || "");
-  const session = getSession(sessionId);
+  const store = getSessionStore();
+
+  const session = await store.get(sessionId);
 
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  if (!session.lastQuestion && !questionText) {
+  // Find the last unanswered turn or use the provided question
+  const lastUnansweredTurn = session.turns
+    .slice()
+    .reverse()
+    .find(turn => turn.answer === "");
+
+  const activeQuestion = lastUnansweredTurn?.question || questionText;
+
+  if (!activeQuestion) {
     return NextResponse.json(
       { error: "Question not initialized" },
       { status: 400 }
     );
   }
 
-  const activeQuestion = session.lastQuestion?.question || questionText;
   const evaluation = evaluateAnswer({
     answer,
-    focusAreas: session.focusAreas,
+    focusAreas: session.skills,
     question: activeQuestion,
   });
 
-  session.answers.push({
-    questionId: session.lastQuestion?.id || `manual_${Date.now()}`,
+  // Convert evaluation to scores format expected by the new interface
+  const scores = {
+    clarity: Math.min(10, evaluation.score * 2),
+    relevance: Math.min(10, evaluation.score * 2),
+    depth: Math.max(4, evaluation.score * 2 - 1),
+    confidence: Math.max(4, evaluation.score * 2 - 1),
+    overall: Math.min(10, evaluation.score * 2),
+  };
+
+  // Update the turn with the answer and scores
+  const updatedSession = await store.appendTurn(sessionId, {
     question: activeQuestion,
     answer,
-    evaluation,
+    scores,
+    timestamp: Date.now(),
   });
-  session.scores.push(evaluation.score);
-  session.memory = [answer, ...session.memory].slice(0, 5);
-  saveSession(session);
 
   const overall = Math.min(10, evaluation.score * 2);
   const turnPayload = {
@@ -61,7 +77,17 @@ export async function POST(request: Request) {
       lastAnswerSummary: answer.slice(0, 140),
     },
     evaluation,
-    answers: session.answers,
-    scores: session.scores,
+    answers: updatedSession.turns.map(turn => ({
+      questionId: `turn_${turn.timestamp}`,
+      question: turn.question,
+      answer: turn.answer,
+      evaluation: {
+        score: turn.scores?.overall || 0,
+        feedback: "",
+        strengths: [],
+        improvements: []
+      }
+    })),
+    scores: updatedSession.turns.map(turn => turn.scores?.overall || 0),
   });
 }
