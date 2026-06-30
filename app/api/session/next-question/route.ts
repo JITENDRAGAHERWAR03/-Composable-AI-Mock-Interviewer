@@ -1,50 +1,74 @@
 import { NextResponse } from "next/server";
-import { getSession, saveSession } from "@/lib/store";
-import { generateQuestion } from "@/lib/llm";
+import { getSessionStore } from "@/lib/store";
+import { generateLLMQuestion } from "@/lib/llm";
+import { getFallbackQuestion } from "@/lib/prompts";
 
 export async function POST(request: Request) {
   const body = await request.json();
   const sessionId = String(body.sessionId || "");
-  const session = getSession(sessionId);
+  const store = getSessionStore();
+
+  const session = await store.get(sessionId);
 
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  if (session.currentTurn >= session.turns) {
+  if (session.status === "completed") {
     return NextResponse.json({ done: true });
   }
 
-  const usedQuestions = new Set(session.answers.map((entry) => entry.question));
-  const question = generateQuestion({
-    role: session.role,
-    context: session.context,
-    focusAreas: session.focusAreas,
-    lastAnswer: session.answers.at(-1)?.answer ?? null,
-    usedQuestions,
-    turn: session.currentTurn + 1,
+  // Try to generate question using LLM
+  const result = await generateLLMQuestion(session);
+
+  let question: string;
+  let fallback = false;
+  let fallbackReason: string | undefined;
+
+  if (result.ok) {
+    // ✅ LLM succeeded
+    question = result.data;
+  } else {
+    // ❌ LLM failed after retries — use static fallback instead of crashing
+    console.warn(
+      `[next-question] LLM failed for session ${sessionId}, using fallback question. Error: ${result.error}`
+    );
+
+    const askedQuestions = session.turns.map((t) => t.question);
+    const interviewType = session.interviewType as "HR" | "Tech" | "Behavioral";
+    question = getFallbackQuestion(interviewType, askedQuestions);
+    fallback = true;
+    fallbackReason = "Having trouble generating your next question — using a backup question for now.";
+  }
+
+  // Store the question as a new turn with empty answer
+  await store.appendTurn(sessionId, {
+    question: question,
+    answer: "", // Placeholder until answer is submitted
+    scores: null,
+    timestamp: Date.now(),
   });
 
-  session.currentTurn += 1;
-  session.lastQuestion = question;
-  saveSession(session);
+  // Get updated session to get turn count
+  const updatedSession = await store.get(sessionId);
+  const turnCount = updatedSession?.turns.length || 0;
 
-  const focusSkill =
-    session.focusAreas[(session.currentTurn - 1) % session.focusAreas.length] ||
-    "general";
-  const difficulty =
-    session.currentTurn >= 4
-      ? "hard"
-      : session.currentTurn >= 3
-        ? "medium"
-        : "easy";
+  // Calculate focus skill and difficulty based on turn count
+  const focusSkill = session.skills[(turnCount - 1) % session.skills.length] || "general";
+  const difficulty = turnCount >= 4
+    ? "hard"
+    : turnCount >= 3
+      ? "medium"
+      : "easy";
 
   return NextResponse.json({
-    turn: session.currentTurn,
-    turns: session.turns,
-    question: question.question,
-    turnIndex: session.currentTurn,
+    turn: turnCount,
+    turns: 5, // Default turns - you may want to store this elsewhere
+    question: question,
+    turnIndex: turnCount,
     focus_skill: focusSkill,
     difficulty,
+    fallback,
+    fallbackReason,
   });
 }
