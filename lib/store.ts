@@ -1,64 +1,102 @@
-import { InterviewSession, InterviewRole } from "./schema";
+// lib/store.ts
 
-const sessions = new Map<string, InterviewSession>();
+/**
+ * SessionStore — storage-agnostic interface for interview session state.
+ *
+ * This seam exists so the backing implementation (in-memory, Vercel KV,
+ * Postgres, etc.) can be swapped without touching any API route.
+ *
+ * All route handlers (api/session/*) MUST go through this interface —
+ * never reach into a module-level Map or object directly.
+ */
 
-const presets: Record<string, string> = {
-  frontend:
-    "Frontend Engineer. Skills: React, TypeScript, accessibility, performance, design collaboration.",
-  backend:
-    "Backend Engineer. Skills: Node.js, APIs, databases, scalability, reliability, security.",
-  pm: "Product Manager. Skills: discovery, metrics, stakeholder alignment, roadmap planning.",
-};
-
-const focusFromContext = (context: string) =>
-  context
-    .toLowerCase()
-    .split(/[\n,]/)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 2)
-    .slice(0, 6);
-
-const createId = () =>
-  `session_${Math.random().toString(36).slice(2, 8)}_${Date.now()}`;
-
-export function createSession({
-  role,
-  context,
-  preset,
-  turns = 5,
-}: {
-  role: InterviewRole;
-  context: string;
-  preset: string | null;
-  turns?: number;
-}): InterviewSession {
-  const resolvedContext = preset ? presets[preset] || context : context;
-  const focusAreas = focusFromContext(resolvedContext);
-  const session: InterviewSession = {
-    id: createId(),
-    role,
-    context: resolvedContext,
-    preset,
-    turns,
-    currentTurn: 0,
-    answers: [],
-    memory: [],
-    scores: [],
-    lastQuestion: null,
-    focusAreas: focusAreas.length > 0 ? focusAreas : ["general"],
-  };
-  sessions.set(session.id, session);
-  return session;
+export interface QuestionAnswerTurn {
+  question: string;
+  answer: string;
+  scores: {
+    clarity: number;
+    relevance: number;
+    depth: number;
+    confidence: number;
+    overall: number;
+  } | null;
+  timestamp: number;
 }
 
-export function getSession(id: string) {
-  return sessions.get(id) || null;
+export interface InterviewSession {
+  id: string;
+  role: string;
+  interviewType: "HR" | "Tech" | "Behavioral";
+  skills: string[];
+  turns: QuestionAnswerTurn[];
+  weakSkills: string[];
+  strongSkills: string[];
+  createdAt: number;
+  updatedAt: number;
+  status: "active" | "completed";
 }
 
-export function saveSession(session: InterviewSession) {
-  sessions.set(session.id, session);
+export interface SessionStore {
+  /**
+   * Create a new session and persist it. Returns the generated session.
+   */
+  create(input: Omit<InterviewSession, "id" | "createdAt" | "updatedAt" | "turns" | "status">): Promise<InterviewSession>;
+
+  /**
+   * Retrieve a session by ID. Returns null if not found or expired.
+   */
+  get(sessionId: string): Promise<InterviewSession | null>;
+
+  /**
+   * Persist an updated session (e.g. after a new turn is added).
+   */
+  update(sessionId: string, session: InterviewSession): Promise<void>;
+
+  /**
+   * Append a new Q&A turn to an existing session atomically.
+   */
+  appendTurn(sessionId: string, turn: QuestionAnswerTurn): Promise<InterviewSession>;
+
+  /**
+   * Mark a session as completed (used before generating final report).
+   */
+  complete(sessionId: string): Promise<void>;
+
+  /**
+   * Delete a session (cleanup / privacy request).
+   */
+  delete(sessionId: string): Promise<void>;
 }
 
-export function listPresets() {
-  return presets;
+// ─────────────────────────────────────────────────────────────────────────
+// Active implementation — selected via factory below.
+// Import from here in all API routes: `import { getSessionStore } from '@/lib/store'`
+// ─────────────────────────────────────────────────────────────────────────
+
+import { InMemorySessionStore } from "./store.memory";
+import { VercelKVSessionStore } from "./store.kv";
+
+let storeInstance: SessionStore | null = null;
+
+/**
+ * Factory — returns the configured SessionStore singleton.
+ * Selects backend based on environment:
+ *   - KV_REST_API_URL set → Vercel KV (production-ready, serverless-safe)
+ *   - otherwise → in-memory (local dev only, single-process)
+ */
+export function getSessionStore(): SessionStore {
+  if (storeInstance) return storeInstance;
+
+  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+    storeInstance = new VercelKVSessionStore();
+  } else {
+    console.warn(
+      "[SessionStore] KV_REST_API_URL not set — falling back to in-memory store. " +
+      "This is NOT safe for production/serverless deployment. " +
+      "See lib/store.kv.ts and .env.example for setup."
+    );
+    storeInstance = new InMemorySessionStore();
+  }
+
+  return storeInstance;
 }
