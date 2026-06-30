@@ -1,4 +1,5 @@
 import { InterviewSession, InterviewRole } from "./schema";
+import { VercelKVSessionStore } from "./store.kv";
 
 const sessions = new Map<string, InterviewSession>();
 

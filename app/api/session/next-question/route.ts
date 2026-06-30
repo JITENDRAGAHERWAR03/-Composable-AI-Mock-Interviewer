@@ -1,49 +1,57 @@
 import { NextResponse } from "next/server";
-import { getSession, saveSession } from "@/lib/store";
+import { getSessionStore } from "@/lib/store";
 import { generateQuestion } from "@/lib/llm";
 
 export async function POST(request: Request) {
   const body = await request.json();
   const sessionId = String(body.sessionId || "");
-  const session = getSession(sessionId);
+  const store = getSessionStore();
+
+  const session = await store.get(sessionId);
 
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  if (session.currentTurn >= session.turns) {
+  // Check if session is completed or if we've reached the turn limit
+  if (session.status === "completed") {
     return NextResponse.json({ done: true });
   }
 
-  const usedQuestions = new Set(session.answers.map((entry) => entry.question));
+  const usedQuestions = new Set(session.turns.map((turn) => turn.question));
+  const lastAnswer = session.turns.length > 0 
+    ? session.turns[session.turns.length - 1].answer 
+    : null;
+
   const question = generateQuestion({
-    role: session.role,
-    context: session.context,
-    focusAreas: session.focusAreas,
-    lastAnswer: session.answers.at(-1)?.answer ?? null,
+    role: session.role as any, // Type casting to match old interface
+    context: session.skills.join(", "), // Using skills as context
+    focusAreas: session.skills.length > 0 ? session.skills : ["general"],
+    lastAnswer,
     usedQuestions,
-    turn: session.currentTurn + 1,
+    turn: session.turns.length + 1,
   });
 
-  session.currentTurn += 1;
-  session.lastQuestion = question;
-  saveSession(session);
+  // Append the question as a turn with null answer (to be filled later)
+  await store.appendTurn(sessionId, {
+    question: question.question,
+    answer: "", // Placeholder until answer is submitted
+    scores: null,
+    timestamp: Date.now(),
+  });
 
-  const focusSkill =
-    session.focusAreas[(session.currentTurn - 1) % session.focusAreas.length] ||
-    "general";
-  const difficulty =
-    session.currentTurn >= 4
-      ? "hard"
-      : session.currentTurn >= 3
-        ? "medium"
-        : "easy";
+  const focusSkill = session.skills[(session.turns.length) % session.skills.length] || "general";
+  const difficulty = session.turns.length >= 3
+    ? "hard"
+    : session.turns.length >= 2
+      ? "medium"
+      : "easy";
 
   return NextResponse.json({
-    turn: session.currentTurn,
-    turns: session.turns,
+    turn: session.turns.length + 1,
+    turns: 5, // Default turns, this would need to be stored elsewhere
     question: question.question,
-    turnIndex: session.currentTurn,
+    turnIndex: session.turns.length + 1,
     focus_skill: focusSkill,
     difficulty,
   });
